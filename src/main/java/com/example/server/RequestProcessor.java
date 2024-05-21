@@ -2,7 +2,6 @@ package com.example.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.util.List;
 
 public class RequestProcessor {
@@ -25,7 +24,6 @@ public class RequestProcessor {
     }
 
     private static String handleGetRequest(String request) {
-        // Пример: "GET /students HTTP/1.1"
         String[] parts = request.split(" ");
         if (parts.length < 2 || !parts[1].equals("/students")) {
             return "{\"status\": \"error\", \"message\": \"Invalid endpoint\"}";

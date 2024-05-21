@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <h1>Student Management</h1>
-<div id="student-form">
-    <h2>Add Student</h2>
-    <form id="add-student-form">
-        <input type="text" id="name" name="name" placeholder="Name" required>
-        <input type="number" id="age" name="age" placeholder="Age" required>
-        <button type="submit">Add Student</button>
-    </form>
-</div>
-<div id="student-list">
-    <h2>Student List</h2>
-    <ul id="students"></ul>
-</div>
+<form id="add-student-form">
+    <input type="text" id="name" placeholder="Фио" required>
+    <input type="number" id="age" placeholder="Возраст" required>
+    <button type="submit">Добавить студента</button>
+</form>
+<form id="update-student-form">
+    <input type="number" id="update-id" placeholder="ID" required>
+    <input type="text" id="update-name" placeholder="Новое Фио" required>
+    <input type="number" id="update-age" placeholder="Новый возраст" required>
+    <button type="submit">Обновить студента</button>
+</form>
+<ul id="students"></ul>
 <script src="script.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
-    private static final String URL = "jdbc:mysql://localhost:3306/studentsdb";
+    private static final String URL = "jdbc:mysql://localhost:3306/student_db?useUnicode=true&characterEncoding=utf8";
     private static final String USER = "a1";
     private static final String PASSWORD = "Gukin1489..";
 

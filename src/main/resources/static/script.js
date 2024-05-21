@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         addStudent();
     });
+
+    document.getElementById('update-student-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        updateStudent();
+    });
 });
 
 function fetchStudents() {
@@ -15,7 +20,7 @@ function fetchStudents() {
             studentList.innerHTML = '';
             students.forEach(student => {
                 const li = document.createElement('li');
-                li.textContent = `${student.name}, Age: ${student.age}`;
+                li.textContent = `ID: ${student.id}, Name: ${student.name}, Age: ${student.age}`;
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
                 deleteButton.onclick = () => deleteStudent(student.id);
@@ -32,7 +37,7 @@ function addStudent() {
     fetch('/students', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json; charset=utf-8'
         },
         body: JSON.stringify({ name, age })
     })
@@ -47,11 +52,34 @@ function addStudent() {
         });
 }
 
+function updateStudent() {
+    const id = document.getElementById('update-id').value;
+    const name = document.getElementById('update-name').value;
+    const age = document.getElementById('update-age').value;
+
+    fetch('/students', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({ id, name, age })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                fetchStudents();
+                document.getElementById('update-student-form').reset();
+            } else {
+                alert('Failed to update student');
+            }
+        });
+}
+
 function deleteStudent(id) {
     fetch('/students', {
         method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json; charset=utf-8'
         },
         body: JSON.stringify({ id })
     })

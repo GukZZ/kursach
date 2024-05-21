@@ -3,6 +3,7 @@ package com.example.server;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +20,7 @@ public class ClientHandler implements Runnable {
         try {
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             clientSocket.read(buffer);
-            String request = new String(buffer.array()).trim();
+            String request = new String(buffer.array(), StandardCharsets.UTF_8).trim();
 
             if (request.startsWith("GET /") && !request.startsWith("GET /students")) {
                 handleStaticFiles(request);
@@ -45,12 +46,13 @@ public class ClientHandler implements Runnable {
                 String httpResponse = "HTTP/1.1 200 OK\r\n" +
                         "Content-Length: " + fileBytes.length + "\r\n" +
                         "Content-Type: " + getContentType(filePath) + "\r\n" +
+                        "Charset: utf-8\r\n" +
                         "\r\n";
-                clientSocket.write(ByteBuffer.wrap(httpResponse.getBytes()));
+                clientSocket.write(ByteBuffer.wrap(httpResponse.getBytes(StandardCharsets.UTF_8)));
                 clientSocket.write(ByteBuffer.wrap(fileBytes));
             } else {
                 String response = "HTTP/1.1 404 Not Found\r\n\r\n";
-                clientSocket.write(ByteBuffer.wrap(response.getBytes()));
+                clientSocket.write(ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8)));
             }
             clientSocket.close();
         } catch (IOException e) {
@@ -62,11 +64,12 @@ public class ClientHandler implements Runnable {
         try {
             String response = RequestProcessor.processRequest(request);
             String httpResponse = "HTTP/1.1 200 OK\r\n" +
-                    "Content-Type: application/json\r\n" +
-                    "Content-Length: " + response.length() + "\r\n" +
+                    "Content-Type: application/json; charset=utf-8\r\n" +
+                    "Content-Length: " + response.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
                     "\r\n" +
                     response;
-            clientSocket.write(ByteBuffer.wrap(httpResponse.getBytes()));
+            clientSocket.write(ByteBuffer.wrap(httpResponse.getBytes(StandardCharsets.UTF_8)));
+            clientSocket.write(ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8)));
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -75,11 +78,11 @@ public class ClientHandler implements Runnable {
 
     private String getContentType(String filePath) {
         if (filePath.endsWith(".html")) {
-            return "text/html";
+            return "text/html; charset=utf-8";
         } else if (filePath.endsWith(".css")) {
-            return "text/css";
+            return "text/css; charset=utf-8";
         } else if (filePath.endsWith(".js")) {
-            return "application/javascript";
+            return "application/javascript; charset=utf-8";
         } else {
             return "application/octet-stream";
         }
