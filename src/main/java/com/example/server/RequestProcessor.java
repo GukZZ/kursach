@@ -3,6 +3,8 @@ package com.example.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,19 +28,19 @@ public class RequestProcessor {
         return "{\"status\": \"error\", \"message\": \"Invalid request\"}";
     }
 
-    private static String handleGetRequest(String request) {
-        // Пример: "GET /students?name=Иван HTTP/1.1"
+    private String handleGetRequest(String request) {
         String[] parts = request.split(" ");
         if (parts.length < 2 || !parts[1].startsWith("/students")) {
             return "{\"status\": \"error\", \"message\": \"Invalid endpoint\"}";
         }
 
-        // Проверяем, есть ли параметр фильтрации по имени в URL
         Map<String, String> queryParams = parseQueryParams(parts[1].substring(parts[1].indexOf('?') + 1));
         if (queryParams.containsKey("first_name")) {
             String filterName = queryParams.get("first_name");
             try {
-                List<Student> students = DatabaseManager.getStudentsByName(filterName);
+                // Decode the filter name to handle URL encoded characters (e.g., Cyrillic)
+                filterName = URLDecoder.decode(filterName, StandardCharsets.UTF_8.name());
+                List<Student> students = databaseManager.getStudentsByName(filterName);
                 return objectMapper.writeValueAsString(students);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -46,7 +48,7 @@ public class RequestProcessor {
             }
         } else {
             try {
-                List<Student> students = DatabaseManager.getAllStudents();
+                List<Student> students = databaseManager.getAllStudents();
                 return objectMapper.writeValueAsString(students);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -68,7 +70,6 @@ public class RequestProcessor {
         }
         return params;
     }
-
 
     private String handlePostRequest(String[] requestLines) {
         try {
@@ -120,5 +121,4 @@ public class RequestProcessor {
         }
         return jsonData.toString().trim();
     }
-
 }

@@ -24,13 +24,13 @@ function fetchStudents() {
     const filterName = document.getElementById('filter-name').value;
     let url = '/students';
     if (filterName) {
-        url += `?name=${encodeURIComponent(filterName)}`;
+        // Updated query parameter to 'first_name' to match the server's expected parameter
+        url += `?first_name=${encodeURIComponent(filterName)}`;
     }
 
     fetch(url)
         .then(response => response.json())
         .then(students => {
-            console.log(students); // Выводим полученные данные в консоль для отладки
             const studentList = document.getElementById('students');
             studentList.innerHTML = '';
             if (Array.isArray(students)) {
@@ -55,9 +55,6 @@ function fetchStudents() {
             console.error('Ошибка при загрузке студентов:', error);
         });
 }
-
-
-// Остальной код остается без изменений
 
 
 function addStudent() {

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
-    private static final String URL = "jdbc:mysql://localhost:3306/student_db";
+    private static final String URL = "jdbc:mysql://localhost:3306/student_db?useUnicode=yes&characterEncoding=UTF-8";
     private static final String USER = "a1";
     private static final String PASSWORD = "Gukin1489..";
 
@@ -59,8 +59,6 @@ public class DatabaseManager {
         }
         return students;
     }
-
-
 
     public void addStudent(Student student) {
         String sql = "INSERT INTO student (first_name, last_name, middle_name, group_name, age) VALUES (?, ?, ?, ?, ?)";
