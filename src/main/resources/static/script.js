@@ -6,40 +6,73 @@ document.addEventListener('DOMContentLoaded', function () {
         addStudent();
     });
 
-    document.getElementById('update-student-form').addEventListener('submit', function (e) {
+    document.getElementById('filter-button').addEventListener('click', function () {
+        fetchStudents();
+    });
+
+    document.getElementById('edit-student-form').addEventListener('submit', function (e) {
         e.preventDefault();
         updateStudent();
+    });
+
+    document.getElementById('cancel-edit').addEventListener('click', function () {
+        document.getElementById('edit-student-form').style.display = 'none';
     });
 });
 
 function fetchStudents() {
-    fetch('/students')
+    const filterName = document.getElementById('filter-name').value;
+    let url = '/students';
+    if (filterName) {
+        url += `?name=${encodeURIComponent(filterName)}`;
+    }
+
+    fetch(url)
         .then(response => response.json())
         .then(students => {
+            console.log(students); // Выводим полученные данные в консоль для отладки
             const studentList = document.getElementById('students');
             studentList.innerHTML = '';
-            students.forEach(student => {
-                const li = document.createElement('li');
-                li.textContent = `ID: ${student.id}, Name: ${student.name}, Age: ${student.age}`;
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => deleteStudent(student.id);
-                li.appendChild(deleteButton);
-                studentList.appendChild(li);
-            });
+            if (Array.isArray(students)) {
+                students.forEach(student => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${student.id}, ${student.firstName} ${student.lastName} ${student.middleName}, Группа: ${student.groupName}, Возраст: ${student.age}`;
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Редактировать';
+                    editButton.onclick = () => showEditForm(student);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Удалить';
+                    deleteButton.onclick = () => deleteStudent(student.id);
+                    li.appendChild(editButton);
+                    li.appendChild(deleteButton);
+                    studentList.appendChild(li);
+                });
+            } else {
+                console.error('Ошибка при загрузке студентов:', students);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке студентов:', error);
         });
 }
 
+
+// Остальной код остается без изменений
+
+
 function addStudent() {
-    const name = document.getElementById('name').value;
-    const age = document.getElementById('age').value;
+    const firstName = document.getElementById('first-name').value;
+    const lastName = document.getElementById('last-name').value;
+    const middleName = document.getElementById('middle-name').value;
+    const groupName = document.getElementById('group-name').value;
+    const age = parseInt(document.getElementById('age').value, 10);
 
     fetch('/students', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json; charset=utf-8'
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, age })
+        body: JSON.stringify({ firstName, lastName, middleName, groupName, age })
     })
         .then(response => response.json())
         .then(result => {
@@ -47,30 +80,7 @@ function addStudent() {
                 fetchStudents();
                 document.getElementById('add-student-form').reset();
             } else {
-                alert('Failed to add student');
-            }
-        });
-}
-
-function updateStudent() {
-    const id = document.getElementById('update-id').value;
-    const name = document.getElementById('update-name').value;
-    const age = document.getElementById('update-age').value;
-
-    fetch('/students', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-        },
-        body: JSON.stringify({ id, name, age })
-    })
-        .then(response => response.json())
-        .then(result => {
-            if (result.status === 'success') {
-                fetchStudents();
-                document.getElementById('update-student-form').reset();
-            } else {
-                alert('Failed to update student');
+                alert('Не удалось добавить студента');
             }
         });
 }
@@ -79,7 +89,7 @@ function deleteStudent(id) {
     fetch('/students', {
         method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json; charset=utf-8'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ id })
     })
@@ -88,7 +98,43 @@ function deleteStudent(id) {
             if (result.status === 'success') {
                 fetchStudents();
             } else {
-                alert('Failed to delete student');
+                alert('Не удалось удалить студента');
+            }
+        });
+}
+
+function showEditForm(student) {
+    document.getElementById('edit-id').value = student.id;
+    document.getElementById('edit-first-name').value = student.firstName;
+    document.getElementById('edit-last-name').value = student.lastName;
+    document.getElementById('edit-middle-name').value = student.middleName;
+    document.getElementById('edit-group-name').value = student.groupName;
+    document.getElementById('edit-age').value = student.age;
+    document.getElementById('edit-student-form').style.display = 'block';
+}
+
+function updateStudent() {
+    const id = document.getElementById('edit-id').value;
+    const firstName = document.getElementById('edit-first-name').value;
+    const lastName = document.getElementById('edit-last-name').value;
+    const middleName = document.getElementById('edit-middle-name').value;
+    const groupName = document.getElementById('edit-group-name').value;
+    const age = parseInt(document.getElementById('edit-age').value, 10);
+
+    fetch('/students', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id, firstName, lastName, middleName, groupName, age })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                fetchStudents();
+                document.getElementById('edit-student-form').style.display = 'none';
+            } else {
+                alert('Не удалось обновить данные студента');
             }
         });
 }

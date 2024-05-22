@@ -10,9 +10,11 @@ import java.nio.file.Paths;
 
 public class ClientHandler implements Runnable {
     private final SocketChannel clientSocket;
+    private final RequestProcessor requestProcessor;
 
     public ClientHandler(SocketChannel clientSocket) {
         this.clientSocket = clientSocket;
+        this.requestProcessor = new RequestProcessor(); // Создаем экземпляр RequestProcessor
     }
 
     @Override
@@ -62,7 +64,7 @@ public class ClientHandler implements Runnable {
 
     private void handleApiRequests(String request) {
         try {
-            String response = RequestProcessor.processRequest(request);
+            String response = requestProcessor.processRequest(request); // Используем метод processRequest из RequestProcessor
             String httpResponse = "HTTP/1.1 200 OK\r\n" +
                     "Content-Type: application/json; charset=utf-8\r\n" +
                     "Content-Length: " + response.getBytes(StandardCharsets.UTF_8).length + "\r\n" +

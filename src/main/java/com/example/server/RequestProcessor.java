@@ -2,13 +2,16 @@ package com.example.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RequestProcessor {
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final DatabaseManager databaseManager = new DatabaseManager();
+    private final DatabaseManager databaseManager = new DatabaseManager();
 
-    public static String processRequest(String request) {
+    public String processRequest(String request) {
         String[] lines = request.split("\r\n");
         String firstLine = lines[0];
         if (firstLine.startsWith("GET")) {
@@ -24,21 +27,50 @@ public class RequestProcessor {
     }
 
     private static String handleGetRequest(String request) {
+        // Пример: "GET /students?name=Иван HTTP/1.1"
         String[] parts = request.split(" ");
-        if (parts.length < 2 || !parts[1].equals("/students")) {
+        if (parts.length < 2 || !parts[1].startsWith("/students")) {
             return "{\"status\": \"error\", \"message\": \"Invalid endpoint\"}";
         }
 
-        try {
-            List<Student> students = databaseManager.getAllStudents();
-            return objectMapper.writeValueAsString(students);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"status\": \"error\", \"message\": \"Failed to fetch students\"}";
+        // Проверяем, есть ли параметр фильтрации по имени в URL
+        Map<String, String> queryParams = parseQueryParams(parts[1].substring(parts[1].indexOf('?') + 1));
+        if (queryParams.containsKey("first_name")) {
+            String filterName = queryParams.get("first_name");
+            try {
+                List<Student> students = DatabaseManager.getStudentsByName(filterName);
+                return objectMapper.writeValueAsString(students);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "{\"status\": \"error\", \"message\": \"Failed to fetch students\"}";
+            }
+        } else {
+            try {
+                List<Student> students = DatabaseManager.getAllStudents();
+                return objectMapper.writeValueAsString(students);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "{\"status\": \"error\", \"message\": \"Failed to fetch students\"}";
+            }
         }
     }
 
-    private static String handlePostRequest(String[] requestLines) {
+    private static Map<String, String> parseQueryParams(String queryParams) {
+        Map<String, String> params = new HashMap<>();
+        String[] keyValuePairs = queryParams.split("&");
+        for (String pair : keyValuePairs) {
+            String[] keyValue = pair.split("=");
+            if (keyValue.length == 2) {
+                String key = keyValue[0];
+                String value = keyValue[1];
+                params.put(key, value);
+            }
+        }
+        return params;
+    }
+
+
+    private String handlePostRequest(String[] requestLines) {
         try {
             String jsonData = extractJsonData(requestLines);
             Student student = objectMapper.readValue(jsonData, Student.class);
@@ -50,7 +82,7 @@ public class RequestProcessor {
         }
     }
 
-    private static String handlePutRequest(String[] requestLines) {
+    private String handlePutRequest(String[] requestLines) {
         try {
             String jsonData = extractJsonData(requestLines);
             Student student = objectMapper.readValue(jsonData, Student.class);
@@ -62,7 +94,7 @@ public class RequestProcessor {
         }
     }
 
-    private static String handleDeleteRequest(String[] requestLines) {
+    private String handleDeleteRequest(String[] requestLines) {
         try {
             String jsonData = extractJsonData(requestLines);
             ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonData);
@@ -75,7 +107,7 @@ public class RequestProcessor {
         }
     }
 
-    private static String extractJsonData(String[] requestLines) {
+    private String extractJsonData(String[] requestLines) {
         StringBuilder jsonData = new StringBuilder();
         boolean isJsonPart = false;
         for (String line : requestLines) {
@@ -88,4 +120,5 @@ public class RequestProcessor {
         }
         return jsonData.toString().trim();
     }
+
 }
